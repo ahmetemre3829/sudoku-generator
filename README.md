@@ -1,4 +1,4 @@
-# Sudoku Üretici ve Çözücü
+# Sudoku Üretici
 
 Bu Python programı, rastgele Sudoku bulmacaları oluşturur ve çözümlerini kaydeder. Sudoku bulmacaları görsel olarak da oluşturulup, belirlenen bir klasöre kaydedilir.
 
@@ -9,10 +9,12 @@ Bu programın çalışması için aşağıdaki Python kütüphaneleri gereklidir
 * numpy
 
 * Pillow
+  
+* colorama
 
 Bu kütüphaneleri yüklemek için aşağıdaki komutu çalıştırabilirsiniz:
 
-`pip install numpy pillow`
+`pip install numpy pillow colorama`
 
 ## Kullanım
 
