@@ -34,6 +34,6 @@ Bu kütüphaneleri yüklemek için aşağıdaki komutu çalıştırabilirsiniz:
 * Program üretilen her bir sudokunun sadece bir çözümü olduğundan emin olur.
 * Çözümü bozmadan kullanıcının istediği sayıda sayıyı tahtadan kaldırmak için tekrar tekrar deneme yapar.
 
-# Lisans
+## Lisans
 
 Bu proje GNU GENERAL PUBLIC LICENSE ile lisanslanmıştır.
