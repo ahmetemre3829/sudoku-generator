@@ -1,39 +1,34 @@
-# Sudoku Üretici
+# Sudoku Generator
+This Python program generates random Sudoku puzzles and saves their solutions. Sudoku puzzles are also created visually and saved in a specified folder.
 
-Bu Python programı, rastgele Sudoku bulmacaları oluşturur ve çözümlerini kaydeder. Sudoku bulmacaları görsel olarak da oluşturulup, belirlenen bir klasöre kaydedilir.
+## Requirements
+The following Python libraries are required for the program to run:
 
-## Gereksinimler
+* Pillow (for ImageFont, ImageDraw, and Image modules)
+* colorama (for Fore)
+* concurrent.futures and multiprocessing (They are part of the Python standard library, so no need to install them separately.)
 
-Bu programın çalışması için aşağıdaki Python kütüphaneleri gereklidir:
+You can install these libraries by running the following command:
 
-* numpy
+`pip install pillow colorama`
 
-* Pillow
-  
-* colorama
+Note: These requirements are for the latest version. It may vary in older versions.
 
-Bu kütüphaneleri yüklemek için aşağıdaki komutu çalıştırabilirsiniz:
+## Usage
+1- Start the program by running the following command in the terminal or command prompt:
 
-`pip install numpy pillow colorama`
+`python sudoku-generator.py`
 
-## Kullanım
+2- Enter how many Sudoku puzzles you want to generate.
 
-1- Terminal veya komut istemcisinde aşağıdaki komutu çalıştırarak programı başlatın:
+3- Set the difficulty level (a value between 17 and 64).
+* This value determines how many numbers will be removed from a fully filled Sudoku board.
 
-`python sudoku_generator.py`
+4- The program will save the generated Sudoku puzzles in the "Sudokular" folder and their solutions in the "Sudoku Solutions" folder.
 
-2- Kaç adet Sudoku bulmacası üretmek istediğinizi girin.
+## Program Features
+The program ensures that each generated Sudoku has only one solution.
+It repeatedly tries to remove the desired number of numbers from the board without breaking the solution.
 
-3- Zorluk seviyesini belirleyin (17 ile 57 arasında bir değer).
-* Bu değer tam dolu sudoku tahtasından kaç adet sayının kaldırılacağını belirler.
-
-4- Program, oluşturulan Sudoku bulmacalarını Sudokular klasörüne, çözümlerini ise Sudoku Çözümleri klasörüne kaydedecektir.
-
-## Program Özellikleri
-
-* Program üretilen her bir sudokunun sadece bir çözümü olduğundan emin olur.
-* Çözümü bozmadan kullanıcının istediği sayıda sayıyı tahtadan kaldırmak için tekrar tekrar deneme yapar.
-
-## Lisans
-
-Bu proje GNU GENERAL PUBLIC LICENSE ile lisanslanmıştır.
+## License
+This project is licensed under the GNU GENERAL PUBLIC LICENSE.
