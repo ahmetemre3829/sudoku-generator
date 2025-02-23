@@ -1,9 +1,11 @@
-#ahmetemre3829
+#ahmetemre3829 - ver. 2.4
 import random
 import os
 import time
 from PIL import ImageFont, ImageDraw, Image
 from colorama import Fore
+import concurrent.futures
+import multiprocessing
 
 class DLXNode:
     def __init__(self):
@@ -258,32 +260,33 @@ def remove_numbers_target_strategic(board, target_empty):
 def count_empty_cells(board):
     return sum(1 for i in range(9) for j in range(9) if board[i][j] == 0)
 
-def generate_minimal_sudoku(target_empty=64):
+def generate_minimal_sudoku(target_empty, attempt_counter, lock):
     global attempt
     attempt = 0
     while True:
         attempt += 1
+        with lock:
+            attempt_counter.value += 1 
         full = generate_full_sudoku()
         puzzle = remove_numbers_target_strategic(full, target_empty)
         empty_count = count_empty_cells(puzzle)
-        print(Fore.YELLOW + f"Deneme {attempt}: {empty_count} boş hücre bulundu.", end='\r')
+        print(Fore.YELLOW + f"Total attempts: {attempt_counter.value}, Last attempt -> {attempt}: {empty_count} empty cells found.", end='\r')
         if empty_count == target_empty:
             return puzzle, full
 
-# ---------------------------------------------------------------------
 def save_sudoku_image(board, folder, filename="sudoku.jpg"):
-    cell_size = 180
+    cell_size = 500
     img_size = 9 * cell_size
     img = Image.new("RGB", (img_size, img_size), "white")
     draw = ImageDraw.Draw(img)
     
     try:
-        font = ImageFont.truetype("arial.ttf", size=70)
+        font = ImageFont.truetype("arial.ttf", size=220)
     except IOError:
         font = ImageFont.load_default()
     
     for i in range(10):
-        line_width = 10 if i % 3 == 0 else 5
+        line_width = 30 if i % 3 == 0 else 12
         draw.line([(i * cell_size, 0), (i * cell_size, img_size)], fill="black", width=line_width)
         draw.line([(0, i * cell_size), (img_size, i * cell_size)], fill="black", width=line_width)
     
@@ -296,40 +299,61 @@ def save_sudoku_image(board, folder, filename="sudoku.jpg"):
                 draw.text((j * cell_size + (cell_size - w) // 2, i * cell_size + (cell_size - h) // 2),
                           text, fill="black", font=font)
     
-    img.save(os.path.join(folder, filename), dpi=(300, 300))
+    img.save(os.path.join(folder, filename))
 
-# ---------------------------------------------------------------------
+def process_sudoku(index, target_empty, sudokular_folder, sudoku_cozumleri_folder, attempt_counter, lock):
+    puzzle, full = generate_minimal_sudoku(target_empty, attempt_counter, lock)
+    
+    save_sudoku_image(puzzle, sudokular_folder, f"sudoku_{index+1}.jpg")
+    solved = dlx_solve_sudoku(full)
+    save_sudoku_image(solved, sudoku_cozumleri_folder, f"solution_{index+1}.jpg")
+    
+    print(Fore.CYAN + f"Sudoku " + Fore.GREEN + f"{index+1}" + Fore.CYAN + " generated. Attempts made: " + Fore.GREEN + f"{attempt}                                       ")
+
 def main():
-    print(Fore.GREEN + "Sudoku oluşturma aracına hoş geldiniz! " + Fore.CYAN + "#ahmetemre3829")
+    print(Fore.GREEN + "Welcome to the Sudoku generation tool! " + Fore.CYAN + "#ahmetemre3829")
+    
     while True:
         try:
-            num_sudokus = int(input(Fore.MAGENTA + "Kaç tane sudoku oluşturmak istersiniz: " + Fore.WHITE))
+            num_sudokus = int(input(Fore.MAGENTA + "How many sudokus would you like to generate: " + Fore.WHITE))
             while True:
-                target_empty = int(input(Fore.MAGENTA + "Zorluk seviyesi (17-64 arası): " + Fore.WHITE))
+                target_empty = int(input(Fore.MAGENTA + "Difficulty level (between 17-64): " + Fore.WHITE))
                 if 17 <= target_empty <= 64:
                     break
-                print(Fore.RED + "Hata: " + Fore.WHITE + "Zorluk 17 ile 64 arasında olmalıdır!")
-            
-            sudokular_folder = "Sudoku"
-            sudoku_cozumleri_folder = "Sudoku"
-            
-            if not os.path.exists(sudokular_folder):
-                os.makedirs(sudokular_folder)
+                print(Fore.RED + "Error: " + Fore.WHITE + "Difficulty must be between 17 and 64!")
 
-            for i in range(num_sudokus):
-                puzzle, full = generate_minimal_sudoku(target_empty)
-                save_sudoku_image(puzzle, sudokular_folder, f"sudoku_{i+1}.jpg")
-                solved = dlx_solve_sudoku(full)
-                save_sudoku_image(solved, sudoku_cozumleri_folder, f"cozum_{i+1}.jpg")
-                print(Fore.CYAN + f"Sudoku " + Fore.GREEN + f"{i+1}" + 
-                      Fore.CYAN +" oluşturuldu. Deneme: " + Fore.GREEN + f"{attempt}                                                              ")
-            print(Fore.GREEN + "\nBütün sudokular oluşturuldu.")
+            sudokus_folder = "Sudoku"
+            sudoku_solutions_folder = "Sudoku/Solutions"
+
+            if not os.path.exists(sudokus_folder):
+                os.makedirs(sudokus_folder)
+
+            if not os.path.exists(sudoku_solutions_folder):
+                os.makedirs(sudoku_solutions_folder)
+
+            with multiprocessing.Manager() as manager:
+                attempt_counter = manager.Value('i', 0)
+                lock = manager.Lock()
+                
+                with concurrent.futures.ProcessPoolExecutor() as executor:
+                    futures = []
+                    
+                    for i in range(num_sudokus):
+                        futures.append(executor.submit(process_sudoku, i, target_empty, sudokus_folder, sudoku_solutions_folder, attempt_counter, lock))
+
+                    for future in concurrent.futures.as_completed(futures):
+                        try:
+                            future.result()
+                        except Exception as e:
+                            print(Fore.RED + "Error: " + Fore.WHITE + str(e))
+            print(Fore.GREEN + "\nAll sudokus have been generated.")
             time.sleep(3)
             print("\n")
         except ValueError:
-            print(Fore.RED + "Hata: " + Fore.WHITE + "Geçersiz değer girdiniz!")
+            print(Fore.RED + "Error: " + Fore.WHITE + "Invalid input!")
         except Exception as e:
-            print(Fore.RED + "Hata: " + Fore.WHITE + str(e))
+            print(Fore.RED + "Error: " + Fore.WHITE + str(e))
+
 
 if __name__ == "__main__":
     main()
